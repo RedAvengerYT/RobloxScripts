@@ -1,0 +1,93 @@
+-- Btw This May Not Work
+
+-- Create a new LocalScript
+local LocalScript = script.Parent:WaitForChild("LocalScript")
+
+-- Create a new Frame for the menu
+local MenuFrame = LocalScript.Parent:AddChild("Frame")
+MenuFrame.Name = "Menu"
+MenuFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MenuFrame.Size = UDim2.new(0.3, 0, 0.3, 0)
+MenuFrame.Visible = false
+
+-- Create a new TextLabel for the menu title
+local MenuTitle = MenuFrame:AddChild("TextLabel")
+MenuTitle.Name = "Title"
+MenuTitle.Position = UDim2.new(0.5, 0, 0.1, 0)
+MenuTitle.Size = UDim2.new(1, 0, 0.2, 0)
+MenuTitle.Text = "Menu"
+
+-- Create a new TextButton for the control other players hack
+local ControlButton = MenuFrame:AddChild("TextButton")
+ControlButton.Name = "Control"
+ControlButton.Position = UDim2.new(0.5, 0, 0.5, 0)
+ControlButton.Size = UDim2.new(1, 0, 0.2, 0)
+ControlButton.Text = "Control"
+
+-- Create a new DropdownMenu for the player selection
+local PlayerSelectionDropdown = MenuFrame:AddChild("DropdownMenu")
+PlayerSelectionDropdown.Name = "PlayerSelection"
+PlayerSelectionDropdown.Position = UDim2.new(0.5, 0, 0.3, 0)
+PlayerSelectionDropdown.Size = UDim2.new(1, 0, 0.2, 0)
+PlayerSelectionDropdown.Text = "Player"
+
+-- Add all of the players in the game to the dropdown menu
+for _, Player in pairs(game.Players:GetPlayers()) do
+    PlayerSelectionDropdown:AddItem(Player.Name)
+end
+
+-- Add a function to toggle the menu visibility
+local function ToggleMenu()
+    if MenuFrame.Visible then
+        MenuFrame.Visible = false
+    else
+        MenuFrame.Visible = true
+    end
+end
+
+-- Add a function to control other players
+local function ControlOtherPlayers(ControlledPlayer)
+    -- Disable movement for both players
+    ControlledPlayer.Character.HumanoidRootPart.CanCollide = false
+    LocalPlayer.Character.HumanoidRootPart.CanCollide = false
+
+    -- Make the main player invulnerable
+    LocalPlayer.Character.HumanoidRootPart.Health = math.huge
+
+    -- Move the main player's camera to the controlled player
+    LocalPlayer.Character.Camera.CameraSubject = ControlledPlayer.Character.HumanoidRootPart
+
+    -- Translate the main player's controls to movement for the controlled player
+    local PlayerInput = game.Players.LocalPlayer.PlayerInput
+
+    PlayerInput.Character.Walk.Direction = ControlledPlayer.Character.HumanoidRootPart.CFrame.LookVector
+    PlayerInput.Character.Jump.Pressed = ControlledPlayer.Character.HumanoidRootPart.JumpPower > 0
+end
+
+-- Add a function to control the selected player
+local function ControlSelectedPlayer()
+    -- Get the selected player
+    local SelectedPlayer = PlayerSelectionDropdown.SelectedOption.Text
+
+    -- Find the selected player in the game
+    local ControlledPlayer = game.Players:FindFirstChild(SelectedPlayer)
+
+    -- Control the selected player
+    ControlOtherPlayers(ControlledPlayer)
+end
+
+-- Bind the ToggleMenu function to the F key
+LocalScript.KeyDown:Connect(function(Key)
+    if Key == Enum.KeyCode.F then
+        ToggleMenu()
+    end
+end)
+
+-- Bind the ControlOtherPlayers function to the F1 key
+ControlButton.MouseButton1Click:Connect(ControlOtherPlayers)
+
+-- Bind the ControlSelectedPlayer function to the dropdown menu
+PlayerSelectionDropdown.Changed:Connect(ControlSelectedPlayer)
+
+-- Start the LocalScript
+LocalScript:Start()
